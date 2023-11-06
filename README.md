@@ -20,7 +20,7 @@ Here we keep all of our VHDL components. The recommended structure of a componen
    - _src_\
    &nbsp; &nbsp; component_name.vhd
    - _tb_\
-   &nbsp; &nbsp; tb.vhd
+   &nbsp; &nbsp; tb.vhd\
    &nbsp; &nbsp; other testbench files...
 
 ### matlab
