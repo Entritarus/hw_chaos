@@ -2,14 +2,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-package util_pkg is
+package functions is
 
   function log2c(input : integer) return integer;
   
 end package;
 
 
-package body util_pkg is
+package body functions is
 
   function log2c(input : integer) return integer is
     variable temp,log : integer;

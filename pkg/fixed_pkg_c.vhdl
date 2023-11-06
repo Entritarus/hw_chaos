@@ -1414,7 +1414,7 @@ package fixed_pkg is
 
   -- IN VHDL-2006 std_logic_vector is a subtype of std_ulogic_vector, so these
   -- extra functions are needed for compatability.
-  function to_ufixed (
+  /*function to_ufixed (
     arg                  : STD_LOGIC_VECTOR;  -- shifted vector
     constant left_index  : INTEGER;
     constant right_index : INTEGER)
@@ -1448,7 +1448,7 @@ package fixed_pkg is
     arg      : STD_LOGIC_VECTOR;
     width    : NATURAL;                 -- width of vector
     fraction : NATURAL)                 -- width of fraction
-    return UNRESOLVED_sfixed;
+    return UNRESOLVED_sfixed;*/
 
 end package fixed_pkg;
 -------------------------------------------------------------------------------
@@ -8305,7 +8305,7 @@ package body fixed_pkg is
 -- rtl_synthesis on
   -- IN VHDL-2006 std_logic_vector is a subtype of std_ulogic_vector, so these
   -- extra functions are needed for compatability.
-  function to_ufixed (
+  /* function to_ufixed (
     arg                  : STD_LOGIC_VECTOR;  -- shifted vector
     constant left_index  : INTEGER;
     constant right_index : INTEGER)
@@ -8373,6 +8373,6 @@ package body fixed_pkg is
       arg => to_stdulogicvector (arg),
       width => width,
       fraction => fraction);
-  end function to_SFix;
+  end function to_SFix; */
 
 end package body fixed_pkg;

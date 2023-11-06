@@ -15,10 +15,9 @@ ieee_proposed = prj.add_library("ieee_proposed")
 
 
 # Add source files relative to sim directory
-hw_chaos.add_source_file("../src/filename1.vhd")
-hw_chaos.add_source_file("../src/filename2.vhd")
+hw_chaos.add_source_file("../src/test_component.vhd")
 
-# 
+
 
 ieee_proposed.add_source_file("../../../pkg/fixed_float_types_c.vhdl")
 ieee_proposed.add_source_file("../../../pkg/fixed_pkg_c.vhdl")
