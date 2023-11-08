@@ -10,21 +10,19 @@ prj.add_random()
 
 # Create main library
 hw_chaos = prj.add_library("hw_chaos")
-# Create library for fixed pkg
-ieee_proposed = prj.add_library("ieee_proposed")
 
 
-# Add source files relative to sim directory
+### Add source files relative to sim directory
+
 hw_chaos.add_source_file("../src/test_component.vhd")
 
+### The rest should be kept untouched
 
-
-ieee_proposed.add_source_file("../../../pkg/fixed_float_types_c.vhdl")
-ieee_proposed.add_source_file("../../../pkg/fixed_pkg_c.vhdl")
 hw_chaos.add_source_file("../../../pkg/data_types.vhd")
 hw_chaos.add_source_file("../../../pkg/functions.vhd")
 hw_chaos.add_source_file("../tb/tb.vhd")
 
+prj.set_compile_option("modelsim.vcom_flags", ["-2008"]);
 
 # Run testbench
 prj.main()
