@@ -71,15 +71,21 @@ begin
     if rst = '1' then
       valid_reg <= '0';
       valid_reg_reg <= '0';
+      last_reg <= '0';
+      last_reg_reg <= '0';
       mul_reg <= (others => '0');
       sum_reg <= (others => '0');
       b_sel_reg <= (others => '0');
-    elsif rising_edge(clk) then
-      valid_reg <= valid_next;
-      valid_reg_reg <= valid_reg_next;
-      mul_reg <= mul_next;
-      sum_reg <= sum_next;
-      b_sel_reg <= b_sel_next;
+    elsif int_en = '1' then
+      if rising_edge(clk) then
+        valid_reg <= valid_next;
+        valid_reg_reg <= valid_reg_next;
+        last_reg <= last_next;
+        last_reg_reg <= last_reg_next;
+        mul_reg <= mul_next;
+        sum_reg <= sum_next;
+        b_sel_reg <= b_sel_next;
+      end if;
     end if;
   end process;
   

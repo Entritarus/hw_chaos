@@ -54,11 +54,11 @@ architecture RTL of tb is
 
   constant stream_master : axi_stream_master_t := new_axi_stream_master(
     data_length => WORD,
-    stall_config => new_stall_config(0.0, 0, 10)
+    stall_config => new_stall_config(0.1, 0, 10)
   );
   constant stream_slave : axi_stream_slave_t := new_axi_stream_slave(
     data_length => WORD,
-    stall_config => new_stall_config(0.0, 0, 10)
+    stall_config => new_stall_config(0.1, 0, 10)
   );
 begin
   clk <= not clk after CLK_PERIOD/2;
