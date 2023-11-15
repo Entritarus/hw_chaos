@@ -22,13 +22,14 @@ use osvvm.RandomPkg.all;
 entity tb is
   generic (
     runner_cfg : string;
+    tb_path : string;
 
     LINE_COUNT : natural := 3;
     X_MIN : real := -10.0;
     X_MAX : real := 10.0;
 
-    INT_PART : natural := 32;
-    FRAC_PART : natural := 32;
+    INT_PART : natural := 16;
+    FRAC_PART : natural := 16;
     WORD : natural := INT_PART + FRAC_PART
   );
 end entity;
@@ -59,6 +60,11 @@ architecture RTL of tb is
   constant stream_slave : axi_stream_slave_t := new_axi_stream_slave(
     data_length => WORD,
     stall_config => new_stall_config(0.1, 0, 10)
+  );
+
+  constant POINT_COUNT : natural := 200;
+  constant MEM_OUT : integer_array_t := new_1d(
+    length => POINT_COUNT
   );
 begin
   clk <= not clk after CLK_PERIOD/2;
@@ -134,19 +140,23 @@ begin
         wait for CLK_PERIOD; 
         rst <= '0';
         
-        x_step := (X_MAX-X_MIN)/200.0;
+        x_step := (X_MAX-X_MIN)/real(POINT_COUNT);
         info("x_step: =" & to_string(x_step));
 
-        for i in -100 to 100 loop
+        for i in -POINT_COUNT/2 to POINT_COUNT/2-1 loop
           x := real(i)*x_step;
           x_sfi := to_sfixed(x, INT_PART-1, -FRAC_PART);
           x_slv := to_slv(x_sfi);
           push_axi_stream(net, stream_master, x_slv, '0');
         end loop;
         
-        for i in 0 to 200 loop
+        for i in 0 to POINT_COUNT-1 loop
           pop_axi_stream(net, stream_slave, result, tlast);
+          info("output: " & to_string(to_real(to_sfixed(result, INT_PART-1, -FRAC_PART))));
+          set(MEM_OUT, i, to_integer(signed(result)));
         end loop;
+
+        save_csv(MEM_OUT, tb_path & "../sim/test_out.csv");
       end if;
       
       

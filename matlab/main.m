@@ -4,7 +4,7 @@ max_time = 200;
 x0 = [0; 0; 0];
 ode_options = odeset('RelTol', 1.0e-6, 'AbsTol', 1.0e-6, 'MaxStep', 1e-3);
 
-N = 5;
+N = 4;
 
 C1 = 1e-9; % 1e-9 
 C2 = 150e-12; % 150e-12
@@ -35,3 +35,13 @@ grid on; grid minor;
 set(gca,'FontSize',16);
 xlabel('x');
 ylabel('y');
+
+figure(2)
+subplot(2,1,1);
+plot(t(1:end-1),diff(x)); hold on;
+plot([0 t(length(t))], [1 1]*2^-16)
+ylabel("diff x");
+
+subplot(2,1,2);
+plot(t(1:end-1),diff(t));
+ylabel("diff t");
