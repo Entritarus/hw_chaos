@@ -42,13 +42,15 @@ architecture RTL of tb is
   signal clk : sl := '1';
   signal rst : sl := '1';
 
-  signal i_value : slv(WORD-1 downto 0) := (others => '0');
-  signal i_valid : sl := '0';
-  signal o_ready : sl := '1';
+  signal i_tvalid : sl := '0';
+  signal o_tready : sl := '0';
+  signal i_tdata : slv(WORD-1 downto 0) := (others => '0');
+  signal i_tlast : sl := '0';
 
-  signal o_result : slv(WORD-1 downto 0) := (others => '0');
-  signal o_valid : sl := '0';
-  signal i_ready : sl := '0';
+  signal o_tvalid : sl := '0';
+  signal i_tready : sl := '0';
+  signal o_tdata : slv(WORD-1 downto 0) := (others => '0');
+  signal o_tlast : sl := '0';
 
   constant stream_master : axi_stream_master_t := new_axi_stream_master(
     data_length => WORD,
@@ -68,9 +70,10 @@ begin
     )
     port map (
       aclk => clk,
-      tvalid => i_valid,
-      tready => o_ready,
-      tdata => i_value
+      tvalid => i_tvalid,
+      tready => o_tready,
+      tdata => i_tdata,
+      tlast => i_tlast
     );
   AXIS_SLAVE: entity vunit_lib.axi_stream_slave
     generic map (
@@ -78,9 +81,10 @@ begin
     )
     port map (
       aclk => clk,
-      tvalid => o_valid,
-      tready => i_ready,
-      tdata => o_result
+      tvalid => o_tvalid,
+      tready => i_tready,
+      tdata => o_tdata,
+      tlast => o_tlast
     );
   --------------------------------------------------------------------------------
   -- DUT instantiation
@@ -99,11 +103,15 @@ begin
       clk => clk,
       rst => rst,
 
-      i_value => i_value,
-      i_valid => i_valid,
+      i_tvalid => i_tvalid,
+      o_tready => o_tready,
+      i_tdata => i_tdata,
+      i_tlast => i_tlast,
 
-      o_result => o_result,
-      o_valid => o_valid
+      o_tvalid => o_tvalid,
+      i_tready => i_tready,
+      o_tdata => o_tdata,
+      o_tlast => o_tlast
     );
 
   --------------------------------------------------------------------------------
@@ -112,9 +120,9 @@ begin
   process
     variable x_step : real := 0.0;
     variable x : real := 0.0;
-    variable x_sfi : sfixed(i_value'range);
+    variable x_sfi : sfixed(i_tdata'range);
     variable x_slv : slv(WORD-1 downto 0);
-    variable result : slv(o_result'range);
+    variable result : slv(o_tdata'range);
     variable tlast : sl := '0';
   begin
     test_runner_setup(runner, runner_cfg);
@@ -136,7 +144,7 @@ begin
           push_axi_stream(net, stream_master, x_slv, '0');
         end loop;
         
-        for i in 0 to 100 loop
+        for i in 0 to 200 loop
           pop_axi_stream(net, stream_slave, result, tlast);
         end loop;
       end if;

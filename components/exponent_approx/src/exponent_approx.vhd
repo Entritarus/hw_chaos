@@ -22,18 +22,27 @@ entity exponent_approx is
     clk : in sl;
     rst : in sl;
 
-    i_value : in slv(WORD-1 downto 0);
-    i_valid : in sl;
+    i_tvalid : in sl;
+    o_tready : out sl;
+    i_tdata : in slv(WORD-1 downto 0);
+    i_tlast : in sl;
 
-    o_result : out slv(WORD-1 downto 0);
-    o_valid : out sl
+    o_tvalid : out sl;
+    i_tready : in sl;
+    o_tdata : out slv(WORD-1 downto 0);
+    o_tlast : out sl
   );
 end entity;
 
 architecture RTL of exponent_approx is
+  signal int_en : sl := '0';
+
   signal i_value_sfi : sfixed(INT_PART-1 downto -FRAC_PART) := (others => '0');
   signal valid_reg, valid_next : sl := '0';
   signal valid_reg_reg, valid_reg_next : sl := '0';
+
+  signal last_reg, last_next : sl := '0';
+  signal last_reg_reg, last_reg_next : sl := '0';
 
   constant B_SEL_HIGH : integer := INT_PART-1;
   constant B_SEL_LOW : integer := -FRAC_PART;
@@ -51,8 +60,10 @@ architecture RTL of exponent_approx is
   constant SUM_REG_HIGH : integer := sfixed_high(MUL_REG_HIGH, MUL_REG_LOW, '+', B_SEL_HIGH, B_SEL_LOW);
   constant SUM_REG_LOW : integer := sfixed_low(MUL_REG_HIGH, MUL_REG_LOW, '+', B_SEL_HIGH, B_SEL_LOW);
   signal sum_reg, sum_next : ufixed(SUM_REG_HIGH downto SUM_REG_LOW) := (others => '0');
+
 begin
-  i_value_sfi <= to_sfixed(i_value, INT_PART-1, -FRAC_PART);
+
+  i_value_sfi <= to_sfixed(i_tdata, INT_PART-1, -FRAC_PART);
 
   -- reg-state logic
   process(clk, rst)
@@ -75,8 +86,12 @@ begin
   -- next-state logic
 
   -- valid propagation
-  valid_next <= i_valid;
+  valid_next <= i_tvalid;
   valid_reg_next <= valid_reg;
+
+  -- last propagation
+  last_next <= i_tlast;
+  last_reg_next <= last_reg;
 
   -- a and b selection process
   A_B_SEL_PROC: process(all)
@@ -116,7 +131,13 @@ begin
   -- adding a*x + b
   sum_next <= to_ufixed(to_slv(mul_reg + b_sel_reg), SUM_REG_HIGH, SUM_REG_LOW);
 
+  -- internal enable
+  int_en <= not valid_reg_reg or i_tready;
+
   -- outputs
-  o_result <= to_slv(sum_reg(INT_PART-1 downto -FRAC_PART));
-  o_valid <= valid_reg_reg;
+  o_tvalid <= valid_reg_reg;
+  o_tready <= int_en;
+  o_tdata <= to_slv(sum_reg(INT_PART-1 downto -FRAC_PART));
+  o_tlast <= last_reg_reg;
+
 end architecture;

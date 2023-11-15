@@ -5,7 +5,7 @@ from vunit import VUnit
 prj = VUnit.from_argv()
 
 prj.add_osvvm()
-prj.add_builtins()
+prj.add_vhdl_builtins()
 prj.add_com()
 prj.add_verification_components()
 prj.add_random()
