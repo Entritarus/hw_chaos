@@ -46,12 +46,10 @@ architecture RTL of tb is
   signal i_tvalid : sl := '0';
   signal o_tready : sl := '0';
   signal i_tdata : slv(WORD-1 downto 0) := (others => '0');
-  signal i_tlast : sl := '0';
 
   signal o_tvalid : sl := '0';
   signal i_tready : sl := '0';
   signal o_tdata : slv(WORD-1 downto 0) := (others => '0');
-  signal o_tlast : sl := '0';
 
   constant stream_master : axi_stream_master_t := new_axi_stream_master(
     data_length => WORD,
@@ -78,8 +76,7 @@ begin
       aclk => clk,
       tvalid => i_tvalid,
       tready => o_tready,
-      tdata => i_tdata,
-      tlast => i_tlast
+      tdata => i_tdata
     );
   AXIS_SLAVE: entity vunit_lib.axi_stream_slave
     generic map (
@@ -89,8 +86,7 @@ begin
       aclk => clk,
       tvalid => o_tvalid,
       tready => i_tready,
-      tdata => o_tdata,
-      tlast => o_tlast
+      tdata => o_tdata
     );
   --------------------------------------------------------------------------------
   -- DUT instantiation
@@ -112,12 +108,10 @@ begin
       i_tvalid => i_tvalid,
       o_tready => o_tready,
       i_tdata => i_tdata,
-      i_tlast => i_tlast,
 
       o_tvalid => o_tvalid,
       i_tready => i_tready,
-      o_tdata => o_tdata,
-      o_tlast => o_tlast
+      o_tdata => o_tdata
     );
 
   --------------------------------------------------------------------------------
@@ -128,8 +122,8 @@ begin
     variable x : real := 0.0;
     variable x_sfi : sfixed(i_tdata'range);
     variable x_slv : slv(WORD-1 downto 0);
-    variable result : slv(o_tdata'range);
     variable tlast : sl := '0';
+    variable result : slv(o_tdata'range);
   begin
     test_runner_setup(runner, runner_cfg);
     
