@@ -25,24 +25,17 @@ entity exponent_approx is
     i_tvalid : in sl;
     o_tready : out sl;
     i_tdata : in slv(WORD-1 downto 0);
-    i_tlast : in sl;
 
     o_tvalid : out sl;
     i_tready : in sl;
-    o_tdata : out slv(WORD-1 downto 0);
-    o_tlast : out sl
+    o_tdata : out slv(WORD-1 downto 0)
   );
 end entity;
 
 architecture RTL of exponent_approx is
-  signal int_en : sl := '0';
-
   signal i_value_sfi : sfixed(INT_PART-1 downto -FRAC_PART) := (others => '0');
   signal valid_reg, valid_next : sl := '0';
   signal valid_reg_reg, valid_reg_next : sl := '0';
-
-  signal last_reg, last_next : sl := '0';
-  signal last_reg_reg, last_reg_next : sl := '0';
 
   constant B_SEL_HIGH : integer := INT_PART-1;
   constant B_SEL_LOW : integer := -FRAC_PART;
@@ -71,17 +64,13 @@ begin
     if rst = '1' then
       valid_reg <= '0';
       valid_reg_reg <= '0';
-      last_reg <= '0';
-      last_reg_reg <= '0';
       mul_reg <= (others => '0');
       sum_reg <= (others => '0');
       b_sel_reg <= (others => '0');
-    elsif int_en = '1' then
+    elsif i_tready = '1' then
       if rising_edge(clk) then
         valid_reg <= valid_next;
         valid_reg_reg <= valid_reg_next;
-        last_reg <= last_next;
-        last_reg_reg <= last_reg_next;
         mul_reg <= mul_next;
         sum_reg <= sum_next;
         b_sel_reg <= b_sel_next;
@@ -94,10 +83,6 @@ begin
   -- valid propagation
   valid_next <= i_tvalid;
   valid_reg_next <= valid_reg;
-
-  -- last propagation
-  last_next <= i_tlast;
-  last_reg_next <= last_reg;
 
   -- a and b selection process
   A_B_SEL_PROC: process(all)
@@ -137,13 +122,9 @@ begin
   -- adding a*x + b
   sum_next <= to_ufixed(to_slv(mul_reg + b_sel_reg), SUM_REG_HIGH, SUM_REG_LOW);
 
-  -- internal enable
-  int_en <= not valid_reg_reg or i_tready;
-
   -- outputs
   o_tvalid <= valid_reg_reg;
-  o_tready <= int_en;
   o_tdata <= to_slv(sum_reg(INT_PART-1 downto -FRAC_PART));
-  o_tlast <= last_reg_reg;
+  o_tready <= i_tready;
 
 end architecture;
