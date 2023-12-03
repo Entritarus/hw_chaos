@@ -41,10 +41,10 @@ architecture RTL of deriv_calc is
   signal z_sfi : sfi(INT_PART-1 downto -FRAC_PART) := (others => '0');
   signal z_slv : slv(WORD-1 downto 0) := (others => '0');
 
-  signal valid_reg, valid_next : slv(3-1 downto 0) := (others => '0');
+  signal valid_reg, valid_next : slv(4-1 downto 0) := (others => '0');
   
   -- dx registers
-  signal dx_reg, dx_next : asfi(0 to 5-1)(INT_PART-1 downto -FRAC_PART) := (others => (others => '0'));
+  signal dx_reg, dx_next : asfi(0 to 6-1)(INT_PART-1 downto -FRAC_PART) := (others => (others => '0'));
 
 
   -- dy registers
@@ -67,6 +67,10 @@ architecture RTL of deriv_calc is
   constant DY5_HIGH : integer := INT_PART-1;
   constant DY5_LOW : integer := -FRAC_PART;
   signal dy5_reg, dy5_next : sfi(DY5_HIGH downto DY5_LOW) := (others => '0');
+  
+  constant DY6_HIGH : integer := INT_PART-1;
+  constant DY6_LOW : integer := -FRAC_PART;
+  signal dy6_reg, dy6_next : sfi(DY6_HIGH downto DY6_LOW) := (others => '0');
 
   -- dz registers
   signal exp_z : sfi(INT_PART-1 downto -FRAC_PART) := (others => '0');
@@ -87,6 +91,10 @@ architecture RTL of deriv_calc is
   constant DZ4_HIGH : integer := sfixed_high(DZ3_HIGH, DZ3_LOW, '+', DZ1_HIGH, DZ1_LOW);
   constant DZ4_LOW : integer := sfixed_low(DZ3_HIGH, DZ3_LOW, '+', DZ1_HIGH, DZ1_LOW);
   signal dz4_reg, dz4_next : sfi(DZ4_HIGH downto DZ4_LOW) := (others => '0');
+
+  constant DZ5_HIGH : integer := sfixed_high(DZ4_HIGH, DZ4_LOW, '/', INT_PART-1, -FRAC_PART);
+  constant DZ5_LOW : integer := sfixed_low(DZ4_HIGH, DZ4_LOW, '/', INT_PART-1, -FRAC_PART);
+  signal dz5_reg, dz5_next : sfi(DZ5_HIGH downto DZ5_LOW) := (others => '0');
 begin
   
   x_sfi <= to_sfixed(i_tdata(X_POS), INT_PART-1, -FRAC_PART);
@@ -112,7 +120,7 @@ begin
       o_tready => open,
       i_tdata => z_slv,
 
-      o_tvalid => valid_next(0),
+      o_tvalid => valid_next(valid_next'low),
       i_tready => i_tready,
       o_tdata => exp_z_slv
     );
@@ -122,56 +130,66 @@ begin
     if rst = '1' then
       valid_reg <= (others => '0');
       dx_reg <= (others => (others => '0'));
+
       dy1_reg <= (others => '0');
       dy2_reg <= (others => '0');
       dy3_reg <= (others => '0');
       dy4_reg <= (others => '0');
       dy5_reg <= (others => '0');
+      dy6_reg <= (others => '0');
+
       dz1_reg <= (others => '0');
       dz2_reg <= (others => '0');
       dz3_reg <= (others => '0');
       dz4_reg <= (others => '0');
+      dz5_reg <= (others => '0');
     elsif i_tready = '1' then
       if rising_edge(clk) then
         valid_reg <= valid_next;
         dx_reg <= dx_next;
+
         dy1_reg <= dy1_next;
         dy2_reg <= dy2_next;
         dy3_reg <= dy3_next;
         dy4_reg <= dy4_next;
         dy5_reg <= dy5_next;
+        dy6_reg <= dy5_next;
+
         dz1_reg <= dz1_next;
         dz2_reg <= dz2_next;
         dz3_reg <= dz3_next;
         dz4_reg <= dz4_next;
+        dz5_reg <= dz5_next;
       end if;
     end if;
   end process;
   
   -- next-state logic
-  dx_next(0) <= y_sfi;
-  dx_next(1 to 5-1) <= dx_reg(0 to 4-1);
+  dx_next(dx_next'low) <= y_sfi;
+  dx_next(dx_next'low+1 to dx_next'high) <= dx_reg(dx_next'low to dx_next'high-1);
 
   dy1_next <= to_sfixed(a, INT_PART-1, -FRAC_PART) * y_sfi;
   dy2_next <= dy1_reg - x_sfi;
   dy3_next <= dy2_reg - z_sfi;
   dy4_next <= dy3_reg(INT_PART-1 downto -FRAC_PART);
   dy5_next <= dy4_reg;
+  dy6_next <= dy5_reg;
 
   exp_z <= to_sfixed(exp_z_slv, INT_PART-1, -FRAC_PART);
   dz1_next <= to_sfixed(b, INT_PART-1, -FRAC_PART) + y_sfi;
   dz2_next <= exp_z - to_sfixed(1.0, INT_PART-1, -FRAC_PART);
   dz3_next <= to_sfixed(-c, INT_PART-1, -FRAC_PART) * dz2_reg;
   dz4_next <= dz3_reg + dz1_reg;
+  dz5_next <= dz4_reg / to_sfixed(e, INT_PART-1, -FRAC_PART);
 
-  valid_next(2 downto 1) <= valid_reg(1 downto 0);
+  valid_next(valid_next'high downto valid_next'low+1) <= valid_reg(valid_reg'high-1 downto valid_reg'low);
   -- outputs
 
   o_tready <= i_tready;
 
-  o_tdata(X_POS) <= to_slv(dx_reg(4));
-  o_tdata(Y_POS) <= to_slv(dy5_reg);
-  o_tdata(Z_POS) <= to_slv(dz4_reg(INT_PART-1 downto -FRAC_PART));
+  o_tdata(X_POS) <= to_slv(dx_reg(dx_reg'high));
+  o_tdata(Y_POS) <= to_slv(dy6_reg);
+  o_tdata(Z_POS) <= to_slv(dz5_reg(INT_PART-1 downto -FRAC_PART));
   
-  o_tvalid <= valid_reg(2);
+  o_tvalid <= valid_reg(valid_reg'high);
 end architecture;

@@ -23,7 +23,7 @@ function dvar = calc_derivatives(t, var, n)
     b = IR4*q*sqrt(L1/C1)/kb/T;
     c = IS*q*sqrt(L1/C1)/kb/T;
     e = C2/C1;
-
+    
     % get variables
     x = var(1);
     y = var(2);
@@ -32,5 +32,5 @@ function dvar = calc_derivatives(t, var, n)
     % calculate derivatives
     dvar(1,:) = y;
     dvar(2,:) = a*y - x - z;
-    dvar(3,:) = (b + y - c*(exp_approx(z, n, -5, 10) - 1))/e;
+    dvar(3,:) = (b + y - c*(exp_approx(z, n, -10, 10) - 1))/e;
 end

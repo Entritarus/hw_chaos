@@ -60,7 +60,7 @@ begin
       a => 1.0,
       b => 1.0,
       c => 1.0,
-      e => 1.0,
+      e => 0.5,
 
       INT_PART => 16,
       FRAC_PART => 16,
@@ -98,9 +98,9 @@ begin
       if run("Full_coverage") then
 
         i_tvalid <= '1';
-        i_tdata(X_POS) <= to_slv(to_sfixed(1000, INT_PART-1, -FRAC_PART));
-        i_tdata(Y_POS) <= to_slv(to_sfixed(1000, INT_PART-1, -FRAC_PART));
-        i_tdata(Z_POS) <= to_slv(to_sfixed(10, INT_PART-1, -FRAC_PART));
+        i_tdata(X_POS) <= to_slv(to_sfixed(1, INT_PART-1, -FRAC_PART));
+        i_tdata(Y_POS) <= to_slv(to_sfixed(1, INT_PART-1, -FRAC_PART));
+        i_tdata(Z_POS) <= to_slv(to_sfixed(1, INT_PART-1, -FRAC_PART));
         wait for 100 ns;
       end if;
       
