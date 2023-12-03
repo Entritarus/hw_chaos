@@ -21,7 +21,10 @@ use osvvm.RandomPkg.all;
 
 entity tb is
   generic (
-
+    runner_cfg : string;
+    INT_PART : integer := 16;
+    FRAC_PART : integer := 16;
+    WORD : integer := INT_PART + FRAC_PART
   );
 end entity;
 
@@ -34,50 +37,58 @@ architecture RTL of tb is
   signal clk : sl := '1';
   signal rst : sl := '1';
 
+  signal i_tvalid : sl := '0';
+  signal o_tready : sl := '0';
+  signal i_tdata : aslv(0 to 3-1)(WORD-1 downto 0) := (others => (others => '0'));
 
-  constant stream_master : axi_stream_master_t := new_axi_stream_master(
-    data_length => WORD,
-    stall_config => new_stall_config(0.1, 0, 10)
-  );
-  constant stream_slave : axi_stream_slave_t := new_axi_stream_slave(
-    data_length => WORD,
-    stall_config => new_stall_config(0.1, 0, 10)
-  );
+  signal o_tvalid : sl := '0';
+  signal i_tready : sl := '1';
+  signal o_tdata : aslv(0 to 3-1)(WORD-1 downto 0) := (others => (others => '0'));
+
+  signal o_tdata_sfi : asfi(0 to 3-1)(INT_PART-1 downto -FRAC_PART) := (others => (others => '0'));
 
 begin
   clk <= not clk after CLK_PERIOD/2;
+  rst <= '0' after CLK_PERIOD;
   
-
-  AXIS_MASTER: entity vunit_lib.axi_stream_master
-    generic map (
-      master => stream_master
-    )
-    port map (
-
-    );
-  AXIS_SLAVE: entity vunit_lib.axi_stream_slave
-    generic map (
-      slave => stream_slave
-    )
-    port map (
-
-    );
   --------------------------------------------------------------------------------
   -- DUT instantiation
   --------------------------------------------------------------------------------
 
-  DUT: entity hw_chaos.
+  DUT: entity hw_chaos.deriv_calc
     generic map (
-      
+      a => 1.0,
+      b => 1.0,
+      c => 1.0,
+      e => 1.0,
+
+      INT_PART => 16,
+      FRAC_PART => 16,
+      WORD => 32
     )
-    port map(
-      
+    port map (
+      clk => clk,
+      rst => rst,
+
+      i_tvalid => i_tvalid,
+      o_tready => o_tready,
+      i_tdata => i_tdata,
+
+      o_tvalid => o_tvalid,
+      i_tready => i_tready,
+      o_tdata => o_tdata
     );
+
+
+  o_tdata_sfi(X_POS) <= to_sfixed(o_tdata(X_POS), INT_PART-1, -FRAC_PART);
+  o_tdata_sfi(Y_POS) <= to_sfixed(o_tdata(Y_POS), INT_PART-1, -FRAC_PART);
+  o_tdata_sfi(Z_POS) <= to_sfixed(o_tdata(Z_POS), INT_PART-1, -FRAC_PART);
 
   --------------------------------------------------------------------------------
   -- Test sequencer
   --------------------------------------------------------------------------------
   process
+    variable input_data : slv(3*WORD-1 downto 0);
   begin
     test_runner_setup(runner, runner_cfg);
     
@@ -86,6 +97,11 @@ begin
     
       if run("Full_coverage") then
 
+        i_tvalid <= '1';
+        i_tdata(X_POS) <= to_slv(to_sfixed(1000, INT_PART-1, -FRAC_PART));
+        i_tdata(Y_POS) <= to_slv(to_sfixed(1000, INT_PART-1, -FRAC_PART));
+        i_tdata(Z_POS) <= to_slv(to_sfixed(10, INT_PART-1, -FRAC_PART));
+        wait for 100 ns;
       end if;
       
       
