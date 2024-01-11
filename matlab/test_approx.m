@@ -4,7 +4,7 @@ y_approx = zeros(size(x));
 y = exp(x);
 
 x_tb = -10:0.1:10-0.1;
-%y_tb = csvread('../components/exponent_approx/sim/output.csv');
+y_tb = csvread('../components/exponent_approx/sim/output.csv');
 y_tb = y_tb(:,1);
 
 for i = 1:length(x)
