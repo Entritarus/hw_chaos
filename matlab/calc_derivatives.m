@@ -2,14 +2,14 @@ function dvar = calc_derivatives(t, var, n)
     % specify constants
     R1 = 1e3;
     R2 = 10e3;
-    R3 = 5e3;
+    R3 = 6e3;
     R4 = 20e3;
 
     C1 = 1e-9; % 1e-9 
     C2 = 150e-12; % 150e-12
 
     L1 = 1e-3; % 1e-3
-    Vin = 20; % change
+    Vin = 10; % change
 
     IR4 = Vin/R4;
     k = R3/R2 + 1;
