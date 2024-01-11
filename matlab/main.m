@@ -1,6 +1,9 @@
 clear variables
 %% Image loading
-img = imread('../res/cameraman_50x50.tif');
+input_name = '../res/livingroom.tif';
+output_name = '../res/livingroom_encr.tif';
+
+img = imread(input_name);
 img = img(:,:,1);
 img_w = width(img);
 img_h = height(img);
@@ -59,4 +62,4 @@ imshow(img);
 figure(3);
 imshow(img_encr);
 
-imwrite(img_encr, '../res/cameraman_50x50_encr.tif', 'TIFF');
+imwrite(img_encr, output_name, 'TIFF');
