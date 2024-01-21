@@ -28,13 +28,21 @@
 
 = Introduction
 
-Image encryption is a common process in modern communication and storage systems. It is used to protect confidentiality and integrity of digital images from unauthorized access. Considering the omnipresence of visual data, it's processing takes a considerable amount of compute resources. Chaos-based image encryption supposedly provides a higher data rate and compute efficiency than traditional image encryption methods. In this paper, a simple chaotic system is used@vilnius-osc-origin as a pseudo-random number generator. A bitstream produced by the generator is then used to diffuse the pixel data of the plain image, resulting in a cipher image. The result of this research is a matlab and VHDL model that implements both the Vilnius oscillator and the image encryption process. 
+Image encryption is a common process in modern communication and storage systems. It is used to protect confidentiality and integrity of digital images from unauthorized access. Considering the omnipresence of visual data, it's processing takes a considerable amount of compute resources. Chaos-based image encryption supposedly provides a higher data rate and compute efficiency than traditional image encryption methods, which is especially useful in dedicated applications, like IoT @iot. In this paper, a simple chaotic system is used@vilnius-osc-origin as a pseudo-random number generator. A bitstream produced by the generator is then used to diffuse the pixel data of the plain image, resulting in a cipher image. The result of this research is a matlab and VHDL model that implements both the Vilnius oscillator and the image encryption process. 
+
+= Related Works
+
+Multiple schemes and algorithms were already proposed for image encryption using chaos. Starting from 1989, when Mattews first proposed a chaos-based method for encryption @first-chaos-encr. Later, many other method were used for encryption:
+
++ Using Blowfish image encryption and cross chaos map @cross-chaos-map.
++ Using two step iterative logistic map @logistic-map.
++ Chaos-based fingerprint images encryption using symmetric cryptography @symmetric-criptography.
 
 = Methods
 
 Chaotic sequence that is required for encryption is produced using Vilnius oscillator.
 
-== Vilnius oscillator
+== Vilnius Oscillator
 
 Study depends on the Vilnius oscillator@vilnius-osc-origin as a chaos oscillator to generate PRNG sequences. Circuit diagram of the Vilnius oscillator is given in @circuit. 
 
@@ -101,10 +109,25 @@ Such encryption is implemented by doing XOR operation on batches of bits, since 
 
 == FPGA
 
+The model for an FPGA is described using versatile hardware description language (VHDL). Biggest challenge to overcome was exponent approximation, since exponent function is a part of @eq differential equation.
+
+=== Exponent approximation
+
+The need to approximate the exponent function on FPGA arises from the fact that the exponential function is computationally expensive and requires a large number of resources to compute accurately. 
+
+The approximation of $e^x$ is based on following mathematical identities @4380753:
+$ e^x = 2^(x dot log_2 e) = 2^(x_i) dot e^(x-x_i "/" log_2 e) $
+$ e^(x+y) = e^x dot e^y $
+
+where $x_i$ is an integer part of $x dot log_2 e$. 
+#figure(
+  image("figs/expo-approx.jpg"),
+  caption: [Difference between approximated exponent and $e^x$]
+) <expo-approx>
 
 == Simulations 
 
-While the main emphasis of this work is to make an FPGA model that implements the Vilnius oscillator and encryption, a Matlab model was made to make comparsion against it, and also because FPGA model simulation is an extremely resource-consuming process. Simulation source codes and execution instructions are available in a github repository #footnote[https://github.com/entritarus/hw_chaos].
+While the main emphasis of this work is to make an FPGA model that implements the Vilnius oscillator and encryption, a Matlab model was made to make comparsion against it, and also because FPGA model simulation is an extremely resource-consuming process. Simulation source codes and execution instructions are available in a github repository #footnote[https://github.com/entritarus/hw_chaos]. Only matlab simulation source codes will be listed here.
 
 === Matlab simulation
 
@@ -138,18 +161,7 @@ img_encr(i, j) = bi2de(xor(bits, img_bits));
 
 Since in FPGA environment exponent approximation is required, it is also simulated in matlab. 
 
-=== FPGA simulation
-
-Simulation in an FPGA environment is done using Intel Questa software. In @fpga-vs-matlab we are comparing phase portraits of Vilnius oscillators simulated with the FPGA model and Matlab model. 
-
-#figure(
-  image("figs/fpga_sim-vs-matlab_sim.jpg"),
-  caption: [FPGA simulation compared to Matlab simulation]
-) <fpga-vs-matlab>
-
-== Exponent approximation
-
-The need to approximate the exponent function on FPGA arises from the fact that the exponential function is computationally expensive and requires a large number of resources to compute accurately. Following is the representation of exponent approximation in matlab:
+Following is the representation of exponent approximation in matlab:
 
 #sourcecode(
   frame: none
@@ -169,10 +181,14 @@ function value = exp_approx(x, N, x_min, x_max)
 end
 ```]
 
+=== FPGA simulation
+
+Simulation in an FPGA environment is done using Intel Questa software. In @fpga-vs-matlab we are comparing phase portraits of Vilnius oscillators simulated with the FPGA model and Matlab model. 
+
 #figure(
-  image("figs/expo-approx.jpg"),
-  caption: [Difference between approximated exponent and $e^x$]
-) <expo-approx>
+  image("figs/fpga_sim-vs-matlab_sim.jpg"),
+  caption: [FPGA simulation compared to Matlab simulation]
+) <fpga-vs-matlab>
 
 = Results
 
@@ -254,8 +270,12 @@ Two additional metrics were calculated for each sample: the number of changing p
   caption: [NPCR and UACI results for encryption],
 ) <table-npcr-uaci>
 
+While NPCR value is near the 100% for almost any cipher image, the UACI value that represent the strength of encryption better - has a low enough value for our proposed encryption to be considered weak. While not a perfect presentation of encryption strength, NPCR and UACI values are used often generally resemble the strength of the algorithm @npcr-uaci.
+
 = Conclusion
 
 In this paper we managed to achieve encryption of images using chaos sequence produced by Vilnius oscillator. Implementation of encryption and chaos sequence generation is done both as an FPGA model and a Matlab model. 
 
-Simple diffusion using XOR operation seems to be lacking in encryption quality. This is because plain image has high impact on the result of XOR operation, by shifting probability of pixel values according to pixel position. It is possible to improve encryption quality by shuffling the pixels using the same chaos sequence as an additional step. Repeating diffusion and shuffle steps multiple times might lead to better encryption quality. 
+Simple diffusion using XOR operation seems to be lacking in encryption quality. This is because plain image has high impact on the result of XOR operation, by shifting probability of pixel values according to pixel position. It is possible to improve encryption quality by shuffling the pixels using the same chaos sequence as an additional step. Repeating diffusion and shuffle steps multiple times might lead to better encryption quality.
+
+The scope of this work was only to simulate encryption, further research effort could actually implement a model into a hardware FPGA.
