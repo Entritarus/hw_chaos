@@ -32,7 +32,7 @@ Image encryption is a common process in modern communication and storage systems
 
 = Related Works
 
-Multiple schemes and algorithms were already proposed for image encryption using chaos. Starting from 1989, when Mattews first proposed a chaos-based method for encryption @first-chaos-encr. Later, many other method were used for encryption:
+Multiple schemes and algorithms were already proposed for image encryption using chaos. Starting from 1989, when Mattews first proposed a chaos-based method for encryption @first-chaos-encr. Later, many other method were used for encryption of images specifically:
 
 + Using Blowfish image encryption and cross chaos map @cross-chaos-map.
 + Using two step iterative logistic map @logistic-map.
@@ -51,7 +51,7 @@ Study depends on the Vilnius oscillator@vilnius-osc-origin as a chaos oscillator
   caption: [Vilnius oscillator circuit diagram @vilnius-osc-origin]
 ) <circuit>
 
-A system of equations that defines the Vilnius oscillator is shown in @system @vilnius-osc-origin.
+A system of equations that defines the Vilnius oscillator is shown in @system.
 
 $ cases(
   C_1 (dif V_C_1) / (dif t) = I_L,
@@ -59,7 +59,7 @@ $ cases(
   C_2 (dif V_C_2) / (dif t) = I_0 + I_L - I_D
 ) $ <system>
 
-Which is then presented in a more convinient form for simulation in @eq @vilnius-osc-origin.
+Which is then presented in a more convinient form for simulation in @eq. Note that exponent function is involved.
 
 $ cases(
   accent(x, dot) = y,
@@ -67,7 +67,7 @@ $ cases(
   epsilon accent(z, dot) = b + y - c(exp z - 1)
 ) $ <eq>
 
-Constants used for simulation are following:
+Constants that describe the chaos system are following:
 
 #grid(columns: 2, gutter: 10pt)[
   $R_1 = 1 dot 10 ^ 3 ohm$
@@ -105,21 +105,24 @@ Cipher image is produced by XOR operation using generated pseudo-random bitstrea
 
 $ C = "IMG" xor "PRNG" $ <encryption-scheme>
 
-Such encryption is implemented by doing XOR operation on batches of bits, since manipulating single bits is extremely inefficient.
+Such encryption is implemented by doing XOR operation on batches of bits, since manipulating single bits is extremely inefficient. In our case, image is encrypted byte by byte.
 
-== FPGA
+== FPGA Implementation
 
 The model for an FPGA is described using versatile hardware description language (VHDL). Biggest challenge to overcome was exponent approximation, since exponent function is a part of @eq differential equation.
 
 === Exponent approximation
 
-The need to approximate the exponent function on FPGA arises from the fact that the exponential function is computationally expensive and requires a large number of resources to compute accurately. 
+The need to approximate the exponent function on FPGA arises from the fact that the exponential function is computationally expensive and requires a large number of resources to compute accurately. Approximation breaks down calculation needed into smaller chunks while still maintaining decent enough precision.
 
 The approximation of $e^x$ is based on following mathematical identities @4380753:
 $ e^x = 2^(x dot log_2 e) = 2^(x_i) dot e^(x-x_i "/" log_2 e) $
 $ e^(x+y) = e^x dot e^y $
 
-where $x_i$ is an integer part of $x dot log_2 e$. 
+where $x_i$ is an integer part of $x dot log_2 e$.
+
+Calculating in base 2 is essential to simplify evaluation of $2^x$ for integer part of $x$.
+
 #figure(
   image("figs/expo-approx.jpg"),
   caption: [Difference between approximated exponent and $e^x$]
@@ -192,7 +195,7 @@ Simulation in an FPGA environment is done using Intel Questa software. In @fpga-
 
 = Results
 
-While generally the source images are encrypted, nonuniform distribution is clearly visible, especially in @cameraman, where the dark region has impact on the same region in the resulting image. Nonuniform distribution of chipher data is confirmed by comparing histograms of images before and after encryption in @cameraman-hist, @jetplane-hist and @livingroom-hist. Ideally, every byte of encrypted data should appear as frequently as any other byte, which our encryption fails to achieve.
+While generally the source images are encrypted, nonuniform distribution is clearly visible, especially in @cameraman, where the dark region has impact on the same region in the resulting image. Nonuniform distribution of chipher data is confirmed by comparing histograms of images before and after encryption in @cameraman-hist, @jetplane-hist and @livingroom-hist. Ideally, every byte of encrypted data should appear as frequently as any other byte, which our encryption fails to achieve. This puts our encryption method in a bad position against statistical attacks.
 
 #figure(
   grid(
@@ -270,7 +273,7 @@ Two additional metrics were calculated for each sample: the number of changing p
   caption: [NPCR and UACI results for encryption],
 ) <table-npcr-uaci>
 
-While NPCR value is near the 100% for almost any cipher image, the UACI value that represent the strength of encryption better - has a low enough value for our proposed encryption to be considered weak. While not a perfect presentation of encryption strength, NPCR and UACI values are used often generally resemble the strength of the algorithm @npcr-uaci.
+While NPCR value is near the 100% for any cipher image, the UACI value that represent the strength of encryption better - has a low enough value for our proposed encryption to be considered weak. While not a perfect presentation of encryption strength, NPCR and UACI values are used often generally resemble the strength of the algorithm @npcr-uaci.
 
 = Conclusion
 
